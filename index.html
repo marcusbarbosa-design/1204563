@@ -5,32 +5,84 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Galeria de Criativos Consumer</title>
   <style>
-    :root { --gap:16px; }
+    :root { --gap:16px; --radius:16px; --shadow:0 4px 18px rgba(0,0,0,.12); --shadow-hover:0 12px 30px rgba(0,0,0,.25); }
     * { box-sizing: border-box; }
-    body {
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      background: #fafafa; color:#222; margin: 40px;
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background:#fafafa; color:#222; margin:40px; }
+    h1 { text-align:center; margin:0 0 28px; }
+
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fill, minmax(240px, 1fr));
+      gap:var(--gap);
     }
-    h1 { text-align:center; margin: 0 0 28px; }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: var(--gap);
+
+    /* Bloco quadrado sem corte */
+    .thumb{
+      width:100%;
+      aspect-ratio:1/1;
+      border-radius:var(--radius);
+      background:#fff;
+      box-shadow:var(--shadow);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      overflow:hidden;
+      transition: box-shadow .22s ease, transform .22s ease;
+      cursor: zoom-in;
     }
-    figure { margin:0; }
-    img {
-      width: 100%;
-      height: 200px;
-      object-fit: cover;
-      border-radius: 12px;
-      box-shadow: 0 2px 5px rgba(0,0,0,.15);
-      background: #e9e9e9;
+    .thumb:hover{
+      box-shadow:var(--shadow-hover);
+      transform: translateY(-2px);
     }
+    .thumb img{
+      max-width:100%;
+      max-height:100%;
+      object-fit:contain;
+      display:block;
+      user-select:none;
+      -webkit-user-drag:none;
+    }
+
+    /* Lightbox (visualização full) */
+    .lightbox{
+      position:fixed; inset:0;
+      background:rgba(0,0,0,.86);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:5vmin;
+      z-index:9999;
+    }
+    .lightbox.open{ display:flex; }
+    .lightbox__img{
+      max-width:92vw; max-height:92vh;
+      border-radius:12px;
+      box-shadow:0 20px 60px rgba(0,0,0,.5);
+      background:#111;
+      object-fit:contain;
+    }
+    .lightbox__close{
+      position:fixed; top:18px; right:18px;
+      background:#ffffff;
+      color:#111; border:none;
+      padding:10px 14px;
+      border-radius:999px;
+      box-shadow:0 6px 24px rgba(0,0,0,.35);
+      cursor:pointer;
+      font-weight:600;
+    }
+    .lightbox__close:hover{ opacity:.9; }
   </style>
 </head>
 <body>
   <h1>Galeria de Criativos Consumer</h1>
   <div class="grid" id="gallery"></div>
+
+  <!-- Lightbox -->
+  <div class="lightbox" id="lightbox" aria-modal="true" role="dialog">
+    <button class="lightbox__close" id="btnClose" aria-label="Fechar visualização (Esc)">Fechar ✕</button>
+    <img class="lightbox__img" id="fullImg" alt="Visualização do criativo" />
+  </div>
 
   <script>
     // IDs das imagens do Drive (arquivos precisam estar "Qualquer pessoa com o link: Leitor")
@@ -40,43 +92,67 @@
       "1pWCwpYziOtuW7v8If3Pe6A1pIUVHv86A"
     ];
 
-    // Tenta múltiplas URLs conhecidas do Drive para evitar bloqueios ocasionais
-    function candidateUrls(id) {
+    // URLs candidatas (tentamos em ordem, com fallback no onerror)
+    function candidateUrls(id){
       return [
         `https://drive.google.com/uc?export=view&id=${id}`,               // principal
-        `https://drive.google.com/thumbnail?id=${id}&sz=w2000`,           // fallback thumbnail
-        `https://drive.usercontent.google.com/uc?id=${id}&export=view`    // fallback usercontent
+        `https://drive.google.com/thumbnail?id=${id}&sz=w3000`,           // alta thumbnail
+        `https://drive.usercontent.google.com/uc?id=${id}&export=view`    // fallback
       ];
     }
 
-    function createSmartImage(id) {
-      const fig = document.createElement("figure");
-      const img = document.createElement("img");
-      img.loading = "lazy";
-      img.decoding = "async";
-      img.referrerPolicy = "no-referrer";
+    // Cria o bloco de miniatura (quadrado) + click para abrir lightbox
+    function createThumb(id){
+      const wrap = document.createElement('div');
+      wrap.className = 'thumb';
+      const img = document.createElement('img');
+      img.loading = 'lazy';
+      img.decoding = 'async';
+      img.referrerPolicy = 'no-referrer';
 
       const urls = candidateUrls(id);
-      let idx = 0;
-      img.src = urls[idx];
+      let i = 0;
+      img.src = urls[i];
+      img.onerror = () => { if (++i < urls.length) img.src = urls[i]; };
 
-      img.onerror = () => {
-        idx++;
-        if (idx < urls.length) {
-          img.src = urls[idx];
-        } else {
-          // marca visual se todos os fallbacks falharem
-          img.style.objectFit = "contain";
-          img.style.background = "#fff";
-        }
-      };
-
-      fig.appendChild(img);
-      return fig;
+      wrap.appendChild(img);
+      wrap.addEventListener('click', () => openLightbox(id));
+      return wrap;
     }
 
-    const gallery = document.getElementById("gallery");
-    imageIds.forEach(id => gallery.appendChild(createSmartImage(id)));
+    // Lightbox (visualização full)
+    const lightbox = document.getElementById('lightbox');
+    const fullImg  = document.getElementById('fullImg');
+    const btnClose = document.getElementById('btnClose');
+
+    function openLightbox(id){
+      // Carrega a melhor URL disponível também aqui (alta resolução)
+      const urls = candidateUrls(id);
+      let i = 0;
+      fullImg.src = urls[i];
+      fullImg.onerror = () => { if (++i < urls.length) fullImg.src = urls[i]; };
+
+      lightbox.classList.add('open');
+      document.body.style.overflow = 'hidden'; // evita scroll por trás
+      btnClose.focus();
+    }
+
+    function closeLightbox(){
+      lightbox.classList.remove('open');
+      document.body.style.overflow = '';
+      fullImg.src = '';
+    }
+
+    // Fechar por botão, ESC ou clique fora da imagem
+    btnClose.addEventListener('click', closeLightbox);
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeLightbox(); });
+    lightbox.addEventListener('click', (e) => {
+      if (e.target === lightbox) closeLightbox(); // clique no backdrop
+    });
+
+    // Monta a galeria
+    const gallery = document.getElementById('gallery');
+    imageIds.forEach(id => gallery.appendChild(createThumb(id)));
   </script>
 </body>
 </html>
