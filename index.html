@@ -1,39 +1,30 @@
 <!doctype html>
 <html lang="pt-br">
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Galeria de Criativos Consumer</title>
   <style>
+    :root { --gap:16px; }
+    * { box-sizing: border-box; }
     body {
-      font-family: sans-serif;
-      background: #fafafa;
-      margin: 40px;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: #fafafa; color:#222; margin: 40px;
     }
-    h1 {
-      text-align: center;
-      color: #333;
-    }
+    h1 { text-align:center; margin: 0 0 28px; }
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 16px;
-      margin-top: 30px;
+      gap: var(--gap);
     }
-    figure {
-      margin: 0;
-    }
+    figure { margin:0; }
     img {
       width: 100%;
       height: 200px;
       object-fit: cover;
       border-radius: 12px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    }
-    figcaption {
-      text-align: center;
-      font-size: 14px;
-      color: #555;
-      margin-top: 6px;
+      box-shadow: 0 2px 5px rgba(0,0,0,.15);
+      background: #e9e9e9;
     }
   </style>
 </head>
@@ -42,20 +33,50 @@
   <div class="grid" id="gallery"></div>
 
   <script>
-    // IDs das imagens da sua pasta do Drive
+    // IDs das imagens do Drive (arquivos precisam estar "Qualquer pessoa com o link: Leitor")
     const imageIds = [
       "1-LHenJ_-WaX_6yBUPKVtm9sawMqBRhTc",
       "1b_m4CoFXhJKLlfsmwf_tF_g3DSeq2R54",
       "1pWCwpYziOtuW7v8If3Pe6A1pIUVHv86A"
     ];
 
-    const gallery = document.getElementById("gallery");
-    imageIds.forEach(id => {
-      const url = `https://drive.usercontent.google.com/uc?id=${id}&export=view`;
+    // Tenta múltiplas URLs conhecidas do Drive para evitar bloqueios ocasionais
+    function candidateUrls(id) {
+      return [
+        `https://drive.google.com/uc?export=view&id=${id}`,               // principal
+        `https://drive.google.com/thumbnail?id=${id}&sz=w2000`,           // fallback thumbnail
+        `https://drive.usercontent.google.com/uc?id=${id}&export=view`    // fallback usercontent
+      ];
+    }
+
+    function createSmartImage(id) {
       const fig = document.createElement("figure");
-      fig.innerHTML = `<img src="${url}" alt="Criativo">`;
-      gallery.appendChild(fig);
-    });
+      const img = document.createElement("img");
+      img.loading = "lazy";
+      img.decoding = "async";
+      img.referrerPolicy = "no-referrer";
+
+      const urls = candidateUrls(id);
+      let idx = 0;
+      img.src = urls[idx];
+
+      img.onerror = () => {
+        idx++;
+        if (idx < urls.length) {
+          img.src = urls[idx];
+        } else {
+          // marca visual se todos os fallbacks falharem
+          img.style.objectFit = "contain";
+          img.style.background = "#fff";
+        }
+      };
+
+      fig.appendChild(img);
+      return fig;
+    }
+
+    const gallery = document.getElementById("gallery");
+    imageIds.forEach(id => gallery.appendChild(createSmartImage(id)));
   </script>
 </body>
 </html>
