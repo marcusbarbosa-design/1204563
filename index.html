@@ -8,78 +8,24 @@
     :root { --gap:16px; --radius:16px; --shadow:0 4px 18px rgba(0,0,0,.12); --shadow-hover:0 12px 30px rgba(0,0,0,.25); }
     * { box-sizing: border-box; }
     body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background:#fafafa; color:#222; margin:40px; }
-    h1 { text-align:center; margin:0 0 28px; }
+    h1 { text-align:center; margin:0 0 12px; }
 
-    .filters { text-align:center; margin-bottom:24px; }
-    .filter-btn {
-      margin:4px; padding:8px 14px;
-      border-radius:8px; border:none;
-      background:#eee; cursor:pointer;
-      transition: all .2s;
-      font-weight:500;
-    }
+    .filters { text-align:center; margin:12px 0 24px; display:flex; flex-wrap:wrap; gap:8px; justify-content:center; }
+    .filter-btn { padding:8px 14px; border-radius:8px; border:none; background:#eee; cursor:pointer; transition:.2s; font-weight:500; }
     .filter-btn:hover { background:#ddd; }
     .filter-btn.active { background:#333; color:#fff; }
 
-    .grid{
-      display:grid;
-      grid-template-columns:repeat(auto-fill, minmax(240px, 1fr));
-      gap:var(--gap);
-    }
+    .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:var(--gap); }
 
-    .thumb{
-      width:100%;
-      aspect-ratio:1/1;
-      border-radius:var(--radius);
-      background:#fff;
-      box-shadow:var(--shadow);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      overflow:hidden;
-      transition: box-shadow .22s ease, transform .22s ease;
-      cursor: zoom-in;
-    }
-    .thumb:hover{
-      box-shadow:var(--shadow-hover);
-      transform: translateY(-2px);
-    }
-    .thumb img{
-      max-width:100%;
-      max-height:100%;
-      object-fit:contain;
-      display:block;
-      user-select:none;
-      -webkit-user-drag:none;
-    }
+    .thumb{ width:100%; aspect-ratio:1/1; border-radius:var(--radius); background:#fff; box-shadow:var(--shadow);
+      display:flex; align-items:center; justify-content:center; overflow:hidden; transition: box-shadow .22s ease, transform .22s ease; cursor: zoom-in; }
+    .thumb:hover{ box-shadow:var(--shadow-hover); transform: translateY(-2px); }
+    .thumb img{ max-width:100%; max-height:100%; object-fit:contain; display:block; user-select:none; -webkit-user-drag:none; }
 
-    .lightbox{
-      position:fixed; inset:0;
-      background:rgba(0,0,0,.86);
-      display:none;
-      align-items:center;
-      justify-content:center;
-      padding:5vmin;
-      z-index:9999;
-    }
+    .lightbox{ position:fixed; inset:0; background:rgba(0,0,0,.86); display:none; align-items:center; justify-content:center; padding:5vmin; z-index:9999; }
     .lightbox.open{ display:flex; }
-    .lightbox__img{
-      max-width:92vw; max-height:92vh;
-      border-radius:12px;
-      box-shadow:0 20px 60px rgba(0,0,0,.5);
-      background:#111;
-      object-fit:contain;
-    }
-    .lightbox__close{
-      position:fixed; top:18px; right:18px;
-      background:#ffffff;
-      color:#111; border:none;
-      padding:10px 14px;
-      border-radius:999px;
-      box-shadow:0 6px 24px rgba(0,0,0,.35);
-      cursor:pointer;
-      font-weight:600;
-    }
+    .lightbox__img{ max-width:92vw; max-height:92vh; border-radius:12px; box-shadow:0 20px 60px rgba(0,0,0,.5); background:#111; object-fit:contain; }
+    .lightbox__close{ position:fixed; top:18px; right:18px; background:#fff; color:#111; border:none; padding:10px 14px; border-radius:999px; box-shadow:0 6px 24px rgba(0,0,0,.35); cursor:pointer; font-weight:600; }
     .lightbox__close:hover{ opacity:.9; }
   </style>
 </head>
@@ -99,42 +45,81 @@
   </div>
 
   <script>
-    // =============================================
-    // 🧩 CONFIGURAÇÃO DAS PASTAS E IMAGENS
-    // =============================================
-    const categories = {
-      "Black Friday": [
-        { id: "1abcD3EXEMPLO1", name: "Black-03.png" },
-        { id: "1abcD3EXEMPLO2", name: "Black-50.png" },
-        { id: "1abcD3EXEMPLO3", name: "black-pessoa-feed.png" }
-      ],
-      // 🔜 Aqui você pode adicionar mais pastas futuramente
-      // "Comanda Mobile": [...],
-      // "MenuDino": [...],
-    };
+    // ===== SUA LISTA GERADA NO APPS SCRIPT (id + name). Se futuramente você incluir "category" aqui, o código já usa! =====
+    const imagesRaw = [
+      {"id":"1deD9AkaDMwbE6IxfNn-JcJmoeokSLL8t","name":"feed-black-01.png"},
+      {"id":"1Lo_7rMH8YvIiKTAAohTKEbTTlwE5GtAI","name":"feed-black-02.png"},
+      {"id":"19DHTtF68p216JCPnGH0CRtWN94bXnb-X","name":"feed-whats.png"},
+      {"id":"1NtAJlQRFBWWYDbTbGtSKd2NPpmT98NfH","name":"feed-corda.png"},
+      {"id":"1v1s5f980cvMoI7bOz2iI0USkEpLPPfV2","name":"pessoa-1.png"},
+      {"id":"1-LHenJ_-WaX_6yBUPKVtm9sawMqBRhTc","name":"bahia-verde-04-vermelho.png"},
+      {"id":"1bp4tFTYH9Wo4-nGjIg2bppimRvJ_1slb","name":"bahia-vermelho-02.png"},
+      {"id":"1RGJzyk1heCeTRCs1VglNr5R0uN6H5ejn","name":"Promo-45dias-1X1.png"},
+      {"id":"1AQTE1ymSsgGUYr3TeddKZ5pn29w5KGW-","name":"feed-promo-2.png"},
+      {"id":"1NMnnnrRUnwKEnE5Di1x9rt4T3uo10hOE","name":"feed-lucro-pizzaria.png"},
+      {"id":"1ohV78Hl7NKc-32fZYvuISEZeOegOR-OB","name":"feed-pizza-melhor-sistema-2.png"},
+      {"id":"1FaxLNSFUMhkpNK82hClcKV8Yr-rhLyWf","name":"feed-pizza-melhor-sistema.png"},
+      {"id":"1_gdo96lLC_RaUiZcx0_43eBOLaTJj_1l","name":"feed-99-4.png"},
+      {"id":"1pWCwpYziOtuW7v8If3Pe6A1pIUVHv86A","name":"feed-99-3.png"},
+      {"id":"1b_m4CoFXhJKLlfsmwf_tF_g3DSeq2R54","name":"feed-99-2.png"},
+      {"id":"1SZwpfZ8c1VrFtO6vqLxNB0EX5_5cuzrS","name":"feed-pizza-menudino.png"},
+      {"id":"1wgZgyaw6NeFNEFJdwYLBfWMVt4sczhg3","name":"feed-escas.png"},
+      {"id":"1Xth5wgiEJ28BhoBDFU2mhu1PUG_3MxFe","name":"feed-especialistas.png"},
+      {"id":"139I5t6l0edD5cjsgANJGnThUPsZV4umL","name":"feed-pizza-dor.png"},
+      {"id":"1pXUF20NapopSvnk4YdorOwigS06jFkSQ","name":"feed-comanda-ch.png"},
+      {"id":"1dcKcTv4hCJR1CkWIxx_qUTkWrt7DzMJx","name":"feed-menudino-pizzas1.png"},
+      {"id":"179RwVYpLSjQxOWW4_sNfCzGoCr0GqPvP","name":"feed-totem-3op.png"},
+      {"id":"1fsWvU8W1BZcmvHo5S6zP9nXvbYAHEKvg","name":"feed-lucro.png"},
+      {"id":"17gGwvRWoUdc1QMBaInVUnMIpl4xFnhJo","name":"feed-equipe-ruim-cozinha2.png"},
+      {"id":"17uciu72Q4w6hhcs6frUzdnDYYi05v168","name":"feed-equipe-ruim-cozinha.png"},
+      {"id":"1MHQKukoYhD88VphcHZ5rHtko7vt6UW0i","name":"feed-casal.png"},
+      {"id":"1ROUsSZC2GBjCRxyhlQkIyRI7cA-RANKq","name":"feed-totem-no1.png"},
+      {"id":"1RKFVyK_GIslyJzQgSEQvOWv5zbgDfS5k","name":"feed-burgers-fidel.png"},
+      {"id":"1-noGcg-Bx9fY9KzUBC_6yZovlgssC3JM","name":"feed-pizza-fidel.png"},
+      {"id":"1MjkOqE3KhhBISAO7KgzORunijhv_oAoz","name":"feed-burguer-migra.png"},
+      {"id":"1gfmCyrrq4u1RaMvR29ZQUycIDmHKzg-n","name":"feed-migra-pizza.png"},
+      {"id":"1KbJCH_wAgPvincdWeFCjPBbBbD7aaRzq","name":"feed-açai-01.png"},
+      {"id":"1nrH7R-1DTKTkcsqa4BpoUnBX00e5WGG0","name":"feed-burg-menu.png"},
+      {"id":"11TJsAWzf09MT1XTaDx0NmLmKnfsHn-xF","name":"feed-ifood-integ.png"},
+      {"id":"1z6wD-I7ICGXAuJDU-JkiOFEM1kfFCRpw","name":"feed-sapo-1.png"},
+      {"id":"1niH1TEUvU0WfPLRR41p9arvkl7TmOfdn","name":"feed-menudino-pizza.png"},
+      {"id":"19AePVO6mXtY6sPQlI4fx2DP0EB38srUE","name":"feed-comanda-001.png"},
+      {"id":"1TO9NHvaTlzPLi076fDb4a4C0fLz4ZNVK","name":"feed-combo-cel.png"},
+      {"id":"1A3Fa8vb0BZeFW4jTQVP6yYzib3AA-KIR","name":"feed-menudino-melhor.png"},
+      {"id":"1GbyT7qGcvmdLzNwOctVLHCxp6HYC-s4T","name":"feed-menudino-al.png"},
+      {"id":"1bHVMz5hfOvD0WSgajzbPoZmuVREVNXGf","name":"feed-whats-pdv.png"},
+      {"id":"13MEpbnXsARiKSP61H7S7Sbr_V8pbvXLE","name":"feed-comanda-mob.png"}
+    ];
 
-    // Junta todas as imagens de todas as categorias
-    const allImages = Object.entries(categories).flatMap(([cat, imgs]) =>
-      imgs.map(img => ({ ...img, category: cat }))
-    );
+    // Se o Apps Script já enviar {category}, usamos. Senão, inferimos por keywords do nome
+    function inferCategoryByName(name) {
+      const n = name.toLowerCase();
+      if (n.includes("black")) return "Black Friday";
+      if (n.includes("comanda")) return "Comanda Mobile";
+      if (n.includes("menudino")) return "MenuDino";
+      if (n.includes("pdv")) return "Consumer PDV";
+      if (n.includes("99")) return "Connect/99Food";
+      return "Outros";
+    }
 
-    // =============================================
-    // 🔍 GERAR FILTROS AUTOMÁTICOS
-    // =============================================
-    const filtersContainer = document.getElementById("filters");
-    const filters = ["Todos", ...Object.keys(categories)];
-    filters.forEach(f => {
+    const images = imagesRaw.map(it => ({
+      ...it,
+      category: it.category ? it.category : inferCategoryByName(it.name || "")
+    }));
+
+    // ------ UI: filtros automáticos ------
+    const filtersEl = document.getElementById("filters");
+    const categories = ["Todos", ...Array.from(new Set(images.map(i => i.category)))];
+    categories.forEach(cat => {
       const btn = document.createElement("button");
       btn.className = "filter-btn";
-      btn.textContent = f;
-      btn.dataset.filter = f.toLowerCase();
-      btn.addEventListener("click", () => applyFilter(f));
-      filtersContainer.appendChild(btn);
+      btn.textContent = cat;
+      btn.dataset.filter = cat;
+      btn.addEventListener("click", () => applyFilter(cat));
+      filtersEl.appendChild(btn);
     });
 
-    // =============================================
-    // 🖼️ FUNÇÕES DE GALERIA E VISUALIZAÇÃO
-    // =============================================
+    // ------ Helpers de imagem ------
     function candidateUrls(id){
       return [
         `https://drive.google.com/uc?export=view&id=${id}`,
@@ -144,11 +129,10 @@
     }
 
     function createThumb(image){
-      const id = image.id;
       const wrap = document.createElement("div");
       wrap.className = "thumb";
       const img = document.createElement("img");
-      const urls = candidateUrls(id);
+      const urls = candidateUrls(image.id);
       let i = 0;
       img.src = urls[i];
       img.onerror = () => { if (++i < urls.length) img.src = urls[i]; };
@@ -158,21 +142,16 @@
     }
 
     const gallery = document.getElementById("gallery");
-    function renderGallery(list){
-      gallery.innerHTML = "";
-      list.forEach(imgObj => gallery.appendChild(createThumb(imgObj)));
-    }
+    function render(list){ gallery.innerHTML = ""; list.forEach(x => gallery.appendChild(createThumb(x))); }
 
-    function applyFilter(filter){
+    function applyFilter(cat){
       document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
-      document.querySelector(`[data-filter='${filter.toLowerCase()}']`).classList.add("active");
-      if(filter === "Todos") renderGallery(allImages);
-      else renderGallery(allImages.filter(i => i.category === filter));
+      const btn = Array.from(document.querySelectorAll(".filter-btn")).find(b => b.textContent === cat);
+      if (btn) btn.classList.add("active");
+      render(cat === "Todos" ? images : images.filter(i => i.category === cat));
     }
 
-    // =============================================
-    // 💡 LIGHTBOX (VISUALIZAÇÃO FULL)
-    // =============================================
+    // ------ Lightbox ------
     const lightbox = document.getElementById("lightbox");
     const fullImg  = document.getElementById("fullImg");
     const btnClose = document.getElementById("btnClose");
@@ -185,20 +164,13 @@
       lightbox.classList.add("open");
       document.body.style.overflow = "hidden";
     }
-
-    function closeLightbox(){
-      lightbox.classList.remove("open");
-      document.body.style.overflow = "";
-      fullImg.src = "";
-    }
+    function closeLightbox(){ lightbox.classList.remove("open"); document.body.style.overflow = ""; fullImg.src = ""; }
 
     btnClose.addEventListener("click", closeLightbox);
-    document.addEventListener("keydown", e => { if(e.key === "Escape") closeLightbox(); });
-    lightbox.addEventListener("click", e => { if(e.target === lightbox) closeLightbox(); });
+    document.addEventListener("keydown", e => { if (e.key === "Escape") closeLightbox(); });
+    lightbox.addEventListener("click", e => { if (e.target === lightbox) closeLightbox(); });
 
-    // =============================================
-    // 🚀 INICIALIZAÇÃO
-    // =============================================
+    // Start: Home com todas
     applyFilter("Todos");
   </script>
 </body>
