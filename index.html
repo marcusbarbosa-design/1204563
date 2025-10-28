@@ -53,7 +53,7 @@
     imageIds.forEach(id => {
       const url = `https://drive.google.com/uc?export=view&id=${id}`;
       const fig = document.createElement("figure");
-      fig.innerHTML = `<img src="${url}" alt="Criativo"><figcaption>${id}</figcaption>`;
+      fig.innerHTML = `<img src="${url}" alt="Criativo">`;
       gallery.appendChild(fig);
     });
   </script>
